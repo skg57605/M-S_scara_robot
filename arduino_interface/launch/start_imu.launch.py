@@ -31,7 +31,7 @@ def generate_launch_description():
             executable='orientation_to_position_node',
             name='orientation_to_position_node',
             output='screen'
-        )
+        ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
