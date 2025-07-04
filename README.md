@@ -1,8 +1,9 @@
 1. 팀원의 ROS 2 작업 공간을 생성하고 src 폴더로 이동합니다.
-mkdir -p ~/ros2_ws/src\d
+mkdir -p ~/ros2_ws/src
+
 cd ~/ros2_ws/src
 
-2. 당신이 만든 GitHub 저장소를 복제(clone)합니다.
+3. 당신이 만든 GitHub 저장소를 복제(clone)합니다.
 git clone https://github.com/skg57605/M-S_scara_robot.git
 
 1. 작업 공간의 루트로 이동합니다.
