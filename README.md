@@ -29,4 +29,8 @@ ros2 pkg list | grep scara
 ros2 pkg list | grep arduino
 
 6. 이제 패키지의 런치 파일이나 노드를 실행할 수 있습니다.
-ros2 launch my_awesome_package my_launch_file.launch.py
+ros2 launch arduino_interface start_imu.launch.py
+
+ros2 run scara_control scara_ik_node
+
+ros2 launch scara_description gazebo.launch.py
