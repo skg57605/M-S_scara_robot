@@ -16,7 +16,7 @@ class ArduinoInterfaceNode(Node):
     def __init__(self):
         super().__init__('arduino_interface_node')
 
-        self.serial_port = '/dev/ttyUSB0'
+        self.serial_port = '/dev/ttyArduinoMega'
         self.baud_rate = 115200
 
         try:
