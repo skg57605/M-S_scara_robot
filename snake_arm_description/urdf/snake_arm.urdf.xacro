@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="snake_arm">
+
+    <xacro:property name="link_length" value="0.2" />
+    <xacro:property name="link_radius" value="0.02" />
+    <xacro:property name="joint_limit" value="1.57" />
+    <material name="blue"><color rgba="0.1 0.1 0.8 1.0"/></material>
+    <material name="green"><color rgba="0.1 0.8 0.1 1.0"/></material>
+    <material name="grey"><color rgba="0.5 0.5 0.5 1.0"/></material>
+
+    <link name="world" />
+    <link name="base_link">
+        <inertial><mass value="0.5" /><inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001" /></inertial>
+        <visual><geometry><cylinder radius="0.05" length="0.05" /></geometry><material name="grey"/></visual>
+        <collision><geometry><cylinder radius="0.05" length="0.05" /></geometry></collision>
+    </link>
+    <joint name="world_to_base" type="fixed"><parent link="world" /><child link="base_link" /><origin xyz="0 0 0.025" rpy="0 0 0" /></joint>
+
+    <link name="link_1">
+        <inertial><mass value="0.1" /><origin xyz="0 0 ${link_length/2}"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001" /></inertial>
+        <visual><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry><material name="blue"/></visual>
+        <collision><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry></collision>
+    </link>
+    <joint name="roll_1_joint" type="revolute">
+        <parent link="base_link" />
+        <child link="link_1" />
+        <origin xyz="0 0 ${0.05/2}" rpy="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit lower="-${joint_limit}" upper="${joint_limit}" effort="10" velocity="1" />
+    </joint>
+
+    <link name="link_2">
+        <inertial><mass value="0.1" /><origin xyz="0 0 ${link_length/2}"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001" /></inertial>
+        <visual><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry><material name="blue"/></visual>
+        <collision><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry></collision>
+    </link>
+    <joint name="pitch_1_joint" type="revolute">
+        <parent link="link_1" />
+        <child link="link_2" />
+        <origin xyz="0 0 ${link_length}" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="-${joint_limit}" upper="${joint_limit}" effort="10" velocity="1" />
+    </joint>
+
+    <link name="link_3">
+        <inertial><mass value="0.1" /><origin xyz="0 0 ${link_length/2}"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001" /></inertial>
+        <visual><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry><material name="blue"/></visual>
+        <collision><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry></collision>
+    </link>
+    <joint name="roll_2_joint" type="revolute">
+        <parent link="link_2" />
+        <child link="link_3" />
+        <origin xyz="0 0 ${link_length}" rpy="0 0 0" />
+        <axis xyz="1 0 0" />
+        <limit lower="-${joint_limit}" upper="${joint_limit}" effort="10" velocity="1" />
+    </joint>
+
+    <link name="link_4">
+        <inertial><mass value="0.1" /><origin xyz="0 0 ${link_length/2}"/><inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001" /></inertial>
+        <visual><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry><material name="green"/></visual>
+        <collision><origin xyz="0 0 ${link_length/2}"/><geometry><cylinder radius="${link_radius}" length="${link_length}" /></geometry></collision>
+    </link>
+    <joint name="pitch_2_joint" type="revolute">
+        <parent link="link_3" />
+        <child link="link_4" />
+        <origin xyz="0 0 ${link_length}" rpy="0 0 0" />
+        <axis xyz="0 1 0" />
+        <limit lower="-${joint_limit}" upper="${joint_limit}" effort="10" velocity="1" />
+    </joint>
+
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        <joint name="roll_1_joint">
+            <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+            <state_interface name="position"/><state_interface name="velocity"/>
+        </joint>
+        <joint name="pitch_1_joint">
+            <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+            <state_interface name="position"/><state_interface name="velocity"/>
+        </joint>
+        <joint name="roll_2_joint">
+            <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+            <state_interface name="position"/><state_interface name="velocity"/>
+        </joint>
+        <joint name="pitch_2_joint">
+            <command_interface name="position"><param name="min">-1.57</param><param name="max">1.57</param></command_interface>
+            <state_interface name="position"/><state_interface name="velocity"/>
+        </joint>
+    </ros2_control>
+    
+    <gazebo>
+        <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+            <parameters>$(find snake_arm_description)/config/snake_arm_controllers.yaml</parameters>
+        </plugin>
+    </gazebo>
+</robot>

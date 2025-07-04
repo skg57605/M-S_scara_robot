@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>snake_arm_description</name>
+  <version>0.0.0</version>
+  <description>Snake arm robot description and simulation</description>
+  <maintainer email="user@todo.todo">user</maintainer>
+  <license>Apache 2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>ros2_control</exec_depend>
+  <exec_depend>ros2_controllers</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_ros2_control</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

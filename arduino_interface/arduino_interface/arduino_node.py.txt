@@ -1,0 +1,132 @@
+# arduino_interface/arduino_node.py
+
+import serial
+import rclpy
+import math
+
+from rclpy.node import Node
+from std_msgs.msg import String
+from sensor_msgs.msg import Imu, MagneticField # MagneticField 메시지 타입 추가
+from geometry_msgs.msg import Quaternion
+
+
+class ArduinoInterfaceNode(Node):
+    def __init__(self):
+        super().__init__('arduino_interface_node')
+
+        self.serial_port = '/dev/ttyUSB0'
+        self.baud_rate = 115200
+
+        try:
+            self.ser = serial.Serial(self.serial_port, self.baud_rate, timeout=1)
+            self.get_logger().info(f"Successfully connected to Arduino on {self.serial_port}")
+        except serial.SerialException as e:
+            self.get_logger().error(f"Failed to connect to Arduino on {self.serial_port}: {e}")
+            rclpy.shutdown()
+            return
+
+        # --- Subscriber ---
+        self.subscription = self.create_subscription(
+            String,
+            'command_to_arduino',
+            self.command_callback,
+            10
+        )
+
+        # --- Publishers ---
+        self.feedback_publisher = self.create_publisher(String, 'feedback_from_arduino', 10)
+        
+        # 1. 가속도/자이로 Raw 데이터 퍼블리셔 (토픽: /imu/raw)
+        self.imu_publisher = self.create_publisher(Imu, 'imu/raw', 10)
+        
+        # 2. 지자기(Magnetometer) 데이터 퍼블리셔 (토픽: /imu/mag) - 새로 추가
+        self.mag_publisher = self.create_publisher(MagneticField, 'imu/mag', 10)
+
+        self.get_logger().info('Publishing to "/imu/raw" and "/imu/mag" topics.')
+
+        self.timer = self.create_timer(0.01, self.read_from_arduino)
+        self.get_logger().info("ArduinoInterfaceNode has started.")
+
+
+    def command_callback(self, msg):
+        command = msg.data.strip()
+        self.get_logger().info(f'Received ROS2 command: "{command}"')
+        try:
+            self.ser.write(f"{command}\n".encode('utf-8'))
+            self.get_logger().info(f"Sent to Arduino via serial: '{command}'")
+        except Exception as e:
+            self.get_logger().error(f"Error writing to serial: {e}")
+            
+    def read_from_arduino(self):
+        if self.ser.in_waiting > 0:
+            try:
+                line = self.ser.readline().decode('utf-8').strip()
+                if not line:
+                    return
+
+                if line.startswith("IMU:"):
+                    try:
+                        imu_data_str = line[len("IMU:"):].split(',')
+                        if len(imu_data_str) == 9:
+                            accX = float(imu_data_str[0])
+                            accY = float(imu_data_str[1])
+                            accZ = float(imu_data_str[2])
+                            gyroX = float(imu_data_str[3])
+                            gyroY = float(imu_data_str[4])
+                            gyroZ = float(imu_data_str[5])
+                            magX = float(imu_data_str[6])
+                            magY = float(imu_data_str[7])
+                            magZ = float(imu_data_str[8])
+
+                            now = self.get_clock().now().to_msg()
+
+                            # --- Imu 메시지 발행 (가속도, 자이로) ---
+                            imu_msg = Imu()
+                            imu_msg.header.stamp = now
+                            imu_msg.header.frame_id = 'imu_link'
+                            
+                            imu_msg.linear_acceleration.x = accX
+                            imu_msg.linear_acceleration.y = accY
+                            imu_msg.linear_acceleration.z = accZ
+                            
+                            imu_msg.angular_velocity.x = gyroX
+                            imu_msg.angular_velocity.y = gyroY
+                            imu_msg.angular_velocity.z = gyroZ
+                            
+                            imu_msg.orientation_covariance[0] = -1.0
+                            self.imu_publisher.publish(imu_msg)
+
+                            # --- MagneticField 메시지 발행 (지자기) ---
+                            mag_msg = MagneticField()
+                            mag_msg.header.stamp = now
+                            mag_msg.header.frame_id = 'imu_link'
+                            mag_msg.magnetic_field.x = magX
+                            mag_msg.magnetic_field.y = magY
+                            mag_msg.magnetic_field.z = magZ
+                            self.mag_publisher.publish(mag_msg)
+                            
+                        else:
+                            self.get_logger().warn(f"IMU data format error: {line}")
+                    except ValueError as ve:
+                        self.get_logger().error(f"Error parsing IMU data: {line} - {ve}")
+
+                else:
+                    feedback_msg = String()
+                    feedback_msg.data = line
+                    self.feedback_publisher.publish(feedback_msg)
+                    self.get_logger().info(f'Received general feedback: "{line}"')
+
+            except Exception as e:
+                self.get_logger().error(f"Error reading from serial: {e}")
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = ArduinoInterfaceNode()
+    if hasattr(node, 'ser') and node.ser.is_open:
+        rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,10 @@
+# ~/ros2_ws/src/scara_description/config/dynamixel_info.yaml
+port: /dev/ttyUSB0
+baudrate: 57600 
+
+joint_1:
+  ID: 0
+  Operating_Mode: 3
+joint_2:
+  ID: 2
+  Operating_Mode: 3
