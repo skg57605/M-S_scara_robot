@@ -1,6 +1,5 @@
 1. 팀원의 ROS 2 작업 공간을 생성하고 src 폴더로 이동합니다.
 mkdir -p ~/ros2_ws/src
-
 cd ~/ros2_ws/src
 
 3. 당신이 만든 GitHub 저장소를 복제(clone)합니다.
