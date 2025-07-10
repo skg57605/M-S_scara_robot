@@ -24,7 +24,7 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
-        parameters=[robot_description, {'use_sim_time': True}] # 시뮬레이션 시간 사용
+        parameters=[robot_description, {'frame_prefix': 'sim/'}, {'use_sim_time': True}] # 시뮬레이션 시간 사용
     )
 
     # Gazebo 실행
