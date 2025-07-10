@@ -2,7 +2,7 @@
 <robot xmlns:xacro="[http://www.ros.org/wiki/xacro](http://www.ros.org/wiki/xacro)" name="scara_robot">
 
     <xacro:arg name="use_sim" default="false"/>
-    
+
     <xacro:if value="$(arg use_sim)">
         <ros2_control name="GazeboSystem" type="system">
             <hardware>
@@ -47,11 +47,11 @@
         <inertial><mass value="0.2"/><origin xyz="${link_1_length/2} 0 0" rpy="0 0 0"/><inertia ixx="0.000054" ixy="0.0" ixz="0.0" iyy="0.000694" iyz="0.0" izz="0.000694"/></inertial>
     </link>
 
-    <joint name="joint_1" type="continuous">
+    <joint name="joint_1" type="revolute">
         <parent link="base_link" /><child link="link_1" />
         <origin xyz="0 0 ${0.1/2}" rpy="0 0 0"/>
         <axis xyz="0 0 1"/>
-        <limit effort="1.5" velocity="6.38791"/>
+        <limit lower="-3.14159" upper="3.14159" effort="1.5" velocity="6.38791"/>
     </joint>
 
     <transmission name="trans_1"><type>transmission_interface/SimpleTransmission</type><joint name="joint_1"><hardwareInterface>position</hardwareInterface></joint><actuator name="motor_1"><hardwareInterface>position</hardwareInterface></actuator></transmission>
@@ -64,22 +64,36 @@
         <inertial><mass value="0.2"/><origin xyz="${link_2_length/2} 0 0" rpy="0 0 0"/><inertia ixx="0.000054" ixy="0.0" ixz="0.0" iyy="0.000694" iyz="0.0" izz="0.000694"/></inertial>
     </link>
     
-    <joint name="joint_2" type="continuous">
-        <parent link="base_link" /><child link="link_1" />
-        <origin xyz="0 0 ${0.1/2}" rpy="0 0 0"/>
+    <joint name="joint_2" type="revolute">
+        <parent link="link_1" /><child link="link_2" />
+        <origin xyz="${link_1_length} 0 0" rpy="0 0 0"/>
         <axis xyz="0 0 1"/>
-        <limit effort="1.5" velocity="6.38791"/>
+        <limit lower="-3.14159" upper="3.14159" effort="1.5" velocity="6.38791"/>
     </joint>
 
     <transmission name="trans_2"><type>transmission_interface/SimpleTransmission</type><joint name="joint_2"><hardwareInterface>position</hardwareInterface></joint><actuator name="motor_2"><hardwareInterface>position</hardwareInterface></actuator></transmission>
 
     <!-- ROS2 CONTROL & GAZEBO PLUGIN -->
     <ros2_control name="GazeboSystem" type="system">
-        <hardware><plugin>gazebo_ros2_control/GazeboSystem</plugin></hardware>
-        <joint name="joint_1"><command_interface name="velocity">
-        </command_interface><state_interface name="position"/><state_interface name="velocity"/></joint>
-        <joint name="joint_2"><command_interface name="velocity">
-        </command_interface><state_interface name="position"/><state_interface name="velocity"/></joint>
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        <joint name="joint_1">
+            <command_interface name="position">
+                <param name="min">-3.14159</param>
+                <param name="max">3.14159</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+        <joint name="joint_2">
+            <command_interface name="position"/>
+                <param name="min">-3.14159</param>
+                <param name="max">3.14159</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
     </ros2_control>
     
     <gazebo>
