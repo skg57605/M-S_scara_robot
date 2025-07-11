@@ -3,22 +3,64 @@
 
     <xacro:arg name="use_sim" default="false"/>
 
+    <!--가상 gazebo ros2 control 설정-->
     <xacro:if value="$(arg use_sim)">
         <ros2_control name="GazeboSystem" type="system">
             <hardware>
                 <plugin>gazebo_ros2_control/GazeboSystem</plugin>
             </hardware>
-            </ros2_control>
+            <joint name="joint_1">
+                <command_interface name="position">
+                    <param name="min">-3.14159</param>
+                    <param name="max">3.14159</param>
+                </command_interface>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint_2">
+                <command_interface name="position">
+                    <param name="min">-3.14159</param>
+                    <param name="max">3.14159</param>
+                </command_interface>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+        </ros2_control>
+        <gazebo>
+            <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+                <parameters>$(find scara_description)/config/scara_controllers.yaml</parameters>
+            </plugin>
+        </gazebo>
+    
+            <gazebo reference="link_1">
+                <disable_collisions link1="base_link" link2="link_1" />
+            </gazebo>
+    
+        <gazebo reference="link_2">
+            <disable_collisions link1="link_1" link2="link_2" />
+        </gazebo>
     </xacro:if>
 
+    <!--실제 로봇 roe2 control 설정-->
     <xacro:unless value="$(arg use_sim)">
         <ros2_control name="DynamixelSystem" type="system">
             <hardware>
-                <plugin>ros_control_for_dynamixel/DynamixelSystemHardware</plugin>
-                <param name="usb_port">/dev/ttyUSB0</param>
-                <param name="baud_rate">57600</param>
+                <plugin>dynamixel_hardware_interface/DynamixelHardware</plugin>
+                <param name="dynamixel_info">$(find scara_description)/config/dynamixel_info.yaml</param>
             </hardware>
-            </ros2_control>
+
+            <joint name="joint_1">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+
+            <joint name="joint_2">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+        </ros2_control>
     </xacro:unless>
 
     <!-- 변수 및 재료 정의 -->
@@ -53,9 +95,7 @@
         <axis xyz="0 0 1"/>
         <limit lower="-3.14159" upper="3.14159" effort="1.5" velocity="6.38791"/>
     </joint>
-
-    <transmission name="trans_1"><type>transmission_interface/SimpleTransmission</type><joint name="joint_1"><hardwareInterface>position</hardwareInterface></joint><actuator name="motor_1"><hardwareInterface>position</hardwareInterface></actuator></transmission>
-    
+ 
     <!-- 링크 2 -->
     <link name="link_2">
         <visual><origin xyz="${link_2_length/2} 0 0"/><geometry><box size="${link_2_length} 0.04 0.04"/></geometry><material name="green"/></visual>
@@ -71,44 +111,6 @@
         <limit lower="-3.14159" upper="3.14159" effort="1.5" velocity="6.38791"/>
     </joint>
 
-    <transmission name="trans_2"><type>transmission_interface/SimpleTransmission</type><joint name="joint_2"><hardwareInterface>position</hardwareInterface></joint><actuator name="motor_2"><hardwareInterface>position</hardwareInterface></actuator></transmission>
-
     <!-- ROS2 CONTROL & GAZEBO PLUGIN -->
-    <ros2_control name="GazeboSystem" type="system">
-        <hardware>
-            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
-        </hardware>
-        <joint name="joint_1">
-            <command_interface name="position">
-                <param name="min">-3.14159</param>
-                <param name="max">3.14159</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-        <joint name="joint_2">
-            <command_interface name="position"/>
-                <param name="min">-3.14159</param>
-                <param name="max">3.14159</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-    </ros2_control>
-    
-    <gazebo>
-        <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
-            <parameters>$(find scara_description)/config/scara_controllers.yaml</parameters>
-        </plugin>
-        
-    </gazebo>
-    
-    
-    <gazebo reference="link_1">
-        <disable_collisions link1="base_link" link2="link_1" />
-    </gazebo>
-    
-    <gazebo reference="link_2">
-        <disable_collisions link1="link_1" link2="link_2" />
-    </gazebo>
+
 </robot>

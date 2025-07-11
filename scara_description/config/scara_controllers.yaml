@@ -3,10 +3,10 @@ controller_manager:
     update_rate: 100
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-    joint_trajectory_controller:
+    scara_arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-joint_trajectory_controller:
+scara_arm_controller:
   ros__parameters:
     joints:
       - joint_1

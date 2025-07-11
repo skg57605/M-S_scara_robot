@@ -1,0 +1,17 @@
+# ~/ros2_ws/src/scara_description/config/dynamixel_info.yaml
+
+# 통신 포트 설정
+port:
+  port_name: "/dev/ttyUSB0"
+  baud_rate: 57600
+
+# 조인트 설정 (반드시 'joints' 키 아래에 있어야 함)
+joints:
+  joint_1:
+    id: 1
+    profile_velocity: 200
+    profile_acceleration: 50
+  joint_2:
+    id: 2
+    profile_velocity: 200
+    profile_acceleration: 50
