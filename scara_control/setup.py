@@ -1,3 +1,5 @@
+#~/ros_ws/scara_control/setup.py
+
 from setuptools import find_packages, setup
 
 package_name = 'scara_control'

@@ -29,6 +29,7 @@ setup(
         'console_scripts': [
             'arduino_node = arduino_interface.arduino_node:main',
             'orientation_to_position_node = arduino_interface.orientation_to_position_node:main',
+            'position_tracker = arduino_interface.position_tracker_node:main', 
         ],
     },
 )

@@ -44,70 +44,68 @@ void setup() {
   
   Serial.println("Calibrated MPU9250 is online and sending data.");
 }
+// 최종 완성형 loop() 함수 - dtostrf 사용
 
 void loop() {
-  // 모든 센서 값 업데이트
+  // 센서 값 업데이트 (기존과 동일)
   mySensor.accelUpdate();
   mySensor.gyroUpdate();
   mySensor.magUpdate();
 
-  // --- 1. 원시(raw) 센서 값 읽기 ---
-  float ax, ay, az;
-  float gx_dps, gy_dps, gz_dps;
-  float mx, my, mz;
-
-  ax = mySensor.accelX();
-  ay = mySensor.accelY();
-  az = mySensor.accelZ();
-
-  gx_dps = mySensor.gyroX();
-  gy_dps = mySensor.gyroY();
-  gz_dps = mySensor.gyroZ();
-
-  mx = mySensor.magX();
-  my = mySensor.magY();
-  mz = mySensor.magZ();
-
-  // --- 2. 캘리브레이션 값 직접 적용 ---
-  // 가속도: (측정값 - 바이어스) / 스케일. 단위: g
-  float cal_ax = (ax - A_B_X_g) / A_S_X;
-  float cal_ay = (ay - A_B_Y_g) / A_S_Y;
-  float cal_az = (az - A_B_Z_g) / A_S_Z;
-
-  // 자이로: 측정값 - 바이어스. 단위: dps
-  float cal_gx_dps = gx_dps - G_B_X_dps;
-  float cal_gy_dps = gy_dps - G_B_Y_dps;
-  float cal_gz_dps = gz_dps - G_B_Z_dps;
+  // 값 계산 및 단위 변환 (기존과 동일)
+  float cal_ax = (mySensor.accelX() - A_B_X_g) / A_S_X;
+  float cal_ay = (mySensor.accelY() - A_B_Y_g) / A_S_Y;
+  float cal_az = (mySensor.accelZ() - A_B_Z_g) / A_S_Z;
+  float cal_gx_dps = mySensor.gyroX() - G_B_X_dps;
+  float cal_gy_dps = mySensor.gyroY() - G_B_Y_dps;
+  float cal_gz_dps = mySensor.gyroZ() - G_B_Z_dps;
+  float cal_mx = mySensor.magX() - M_B_X;
+  float cal_my = mySensor.magY() - M_B_Y;
+  float cal_mz = mySensor.magZ() - M_B_Z;
   
-  // 지자기: 측정값 - 바이어스. 단위: uT
-  float cal_mx = mx - M_B_X;
-  float cal_my = my - M_B_Y;
-  float cal_mz = mz - M_B_Z;
-  
-  // ROS에서 사용할 단위로 변환
   const float g_to_mss = 9.80665;
   const float dps_to_rads = M_PI / 180.0;
   
   float final_ax = cal_ax * g_to_mss;
   float final_ay = cal_ay * g_to_mss;
   float final_az = cal_az * g_to_mss;
-
   float final_gx_rads = cal_gx_dps * dps_to_rads;
   float final_gy_rads = cal_gy_dps * dps_to_rads;
   float final_gz_rads = cal_gz_dps * dps_to_rads;
 
+  // ====================================================================
+  // ===> 핵심 수정 사항: dtostrf()를 사용해 데이터를 문자열로 변환 <===
+  // ====================================================================
+  
+  // 1. 데이터를 담을 충분한 크기의 문자 버퍼들을 준비합니다.
+  char ax_str[10], ay_str[10], az_str[10];
+  char gx_str[10], gy_str[10], gz_str[10];
+  char mx_str[10], my_str[10], mz_str[10];
+  char tx_buffer[200]; // 최종 문장을 담을 버퍼
 
-  // PC로 전송할 데이터 포맷: "IMU:ax,ay,az,gx,gy,gz,mx,my,mz"
-  Serial.print("IMU:");
-  Serial.print(final_ax, 4); Serial.print(",");
-  Serial.print(final_ay, 4); Serial.print(",");
-  Serial.print(final_az, 4); Serial.print(",");
-  Serial.print(final_gx_rads, 4); Serial.print(","); // rad/s 단위로 전송
-  Serial.print(final_gy_rads, 4); Serial.print(",");
-  Serial.print(final_gz_rads, 4); Serial.print(",");
-  Serial.print(cal_mx, 4); Serial.print(","); // uT 단위로 전송
-  Serial.print(cal_my, 4); Serial.print(",");
-  Serial.println(cal_mz, 4);
+  // 2. dtostrf()를 사용해 각 float 값을 문자열로 변환합니다.
+  // dtostrf(float값, 전체자리수, 소수점이하자리수, 저장할버퍼);
+  dtostrf(final_ax, 4, 4, ax_str);
+  dtostrf(final_ay, 4, 4, ay_str);
+  dtostrf(final_az, 4, 4, az_str);
+  dtostrf(final_gx_rads, 4, 4, gx_str);
+  dtostrf(final_gy_rads, 4, 4, gy_str);
+  dtostrf(final_gz_rads, 4, 4, gz_str);
+  dtostrf(cal_mx, 4, 4, mx_str);
+  dtostrf(cal_my, 4, 4, my_str);
+  dtostrf(cal_mz, 4, 4, mz_str);
 
-  delay(20); // 약 50Hz로 데이터 전송
+  // 3. sprintf()를 사용해 변환된 문자열들을 하나로 합칩니다.
+  //    이제 %s (문자열 형식 지정자)를 사용하므로 float 문제가 없습니다.
+  sprintf(tx_buffer, "IMU:%s,%s,%s,%s,%s,%s,%s,%s,%s",
+    ax_str, ay_str, az_str,
+    gx_str, gy_str, gz_str,
+    mx_str, my_str, mz_str
+  );
+
+  // 4. 완성된 문장을 한 번에 전송합니다.
+  Serial.println(tx_buffer);
+  // ====================================================================
+
+  delay(20);
 }
