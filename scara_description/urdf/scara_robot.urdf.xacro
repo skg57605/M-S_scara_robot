@@ -11,16 +11,16 @@
             </hardware>
             <joint name="joint_1">
                 <command_interface name="position">
-                    <param name="min">-3.14159</param>
-                    <param name="max">3.14159</param>
+                    <param name="min">-2.356</param>
+                    <param name="max">2.356</param>
                 </command_interface>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
             <joint name="joint_2">
                 <command_interface name="position">
-                    <param name="min">-3.14159</param>
-                    <param name="max">3.14159</param>
+                    <param name="min">-2.356</param>
+                    <param name="max">2.356</param>
                 </command_interface>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
@@ -100,7 +100,7 @@
                 <param name="Position P Gain">800</param>
                 <param name="Position I Gain">100</param>
                 <param name="Position D Gain">100</param>
-                <param name="Profile Velocity">200</param>
+                <param name="Profile Velocity">150</param>
                 <param name="Profile Acceleration">50</param>
                 <param name="Drive Mode">1</param>
             </gpio>
@@ -113,7 +113,7 @@
                 <param name="Position P Gain">800</param>
                 <param name="Position I Gain">100</param>
                 <param name="Position D Gain">100</param>
-                <param name="Profile Velocity">200</param>
+                <param name="Profile Velocity">150</param>
                 <param name="Profile Acceleration">50</param>
                 <param name="Drive Mode">1</param>
             </gpio> 

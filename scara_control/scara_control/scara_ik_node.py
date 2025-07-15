@@ -23,9 +23,9 @@ class ScaraIKNode(Node):
         self.subscription = self.create_subscription(
             PoseStamped, '/target_pose', self.target_pose_callback, 10)
         
-        # --- 출력 1: 실제 로봇(아두이노)을 위한 토픽 퍼블리셔 ---
-        self.real_robot_publisher = self.create_publisher(
-            JointTrajectoryPoint, '/joint_commands', 10)
+        # --- 출력 1: 실제 로봇(아두이노)을 위한 토픽 퍼블리셔(비활성화) ---
+        #self.real_robot_publisher = self.create_publisher(
+        #    JointTrajectoryPoint, '/joint_commands', 10)
         
         # --- 출력 2: Gazebo 시뮬레이션을 위한 액션 클라이언트 ---
         self._action_client = ActionClient(
@@ -45,9 +45,13 @@ class ScaraIKNode(Node):
         try:
             theta1, theta2 = self.solve_ik(target_x, target_y)
             
+            # ===> 관절 한계 확인 코드 추가 <===
+            # URDF에 정의된 limit과 동일하게 설정합니다.
+            joint1_min, joint1_max = -2.356, 2.356
+            joint2_min, joint2_max = -2.356, 2.356
+            
             # 계산된 각도를 두 곳 모두에 전송
-            self.publish_to_real_robot(theta1, theta2) # 실제 로봇으로
-            self.send_goal_to_gazebo(theta1, theta2)     # Gazebo로
+            self.send_goal(theta1, theta2)
 
         except ValueError as e:
             self.get_logger().warn(f'IK Error: {e}', throttle_duration_sec=1.0)
@@ -66,14 +70,7 @@ class ScaraIKNode(Node):
         theta1 = math.atan2(y, x) - math.atan2(k2, k1)
         return theta1, theta2
 
-    def publish_to_real_robot(self, theta1, theta2):
-        point_msg = JointTrajectoryPoint()
-        point_msg.positions = [theta1, theta2]
-        self.real_robot_publisher.publish(point_msg)
-        self.get_logger().info(f'Publishing to real robot: [{theta1:.3f}, {theta2:.3f}]', throttle_duration_sec=1.0)
-
-
-    def send_goal_to_gazebo(self, theta1, theta2):
+    def send_goal(self, theta1, theta2):
         if not self._action_client.server_is_ready():
             # self.get_logger().warn('Gazebo action server not ready. Skipping.', throttle_duration_sec=1.0)
             return
