@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="[http://www.ros.org/wiki/xacro](http://www.ros.org/wiki/xacro)" name="scara_robot">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="scara_robot">
 
     <xacro:arg name="use_sim" default="false"/>
 
@@ -42,24 +42,92 @@
     </xacro:if>
 
     <!--실제 로봇 roe2 control 설정-->
+    <!--<xacro:unless value="$(arg use_sim)">
+        <ros2_control name="DynamixelSystem" type="system">
+            <hardware>
+                <plugin>dynamixel_workbench/DynamixelWorkbench</plugin>
+                <param name="dynamixel_info">$(find scara_description)/config/dynamixel_info.yaml</param>
+            </hardware>
+            <joint name="joint_1">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+            <joint name="joint_2">
+                <command_interface name="position"/>
+                <state_interface name="position"/>
+                <state_interface name="velocity"/>
+            </joint>
+        </ros2_control>
+    </xacro:unless>-->
     <xacro:unless value="$(arg use_sim)">
         <ros2_control name="DynamixelSystem" type="system">
             <hardware>
                 <plugin>dynamixel_hardware_interface/DynamixelHardware</plugin>
-                <param name="dynamixel_info">$(find scara_description)/config/dynamixel_info.yaml</param>
-            </hardware>
+                <param name="port_name">/dev/ttyUSB0</param>
+                <param name="baud_rate">57600</param>
+                <param name="error_timeout_ms">500</param>
+                <param name="number_of_joints">2</param>
+                <param name="number_of_transmissions">2</param>
+                <param name="dynamixel_model_folder">/param/dxl_model</param>
+                <param name="disable_torque_at_init">true</param>
+                <param name="transmission_to_joint_matrix">1,0,0,1</param>
+                <param name="joint_to_transmission_matrix">1,0,0,1</param>
+                <param name="dynamixel_state_pub_msg_name">dynamixel_hardware_interface/dxl_state</param>
+                <param name="get_dynamixel_data_srv_name">dynamixel_hardware_interface/get_dxl_data</param>
+                <param name="set_dynamixel_data_srv_name">dynamixel_hardware_interface/set_dxl_data</param>
+                <param name="reboot_dxl_srv_name">dynamixel_hardware_interface/reboot_dxl</param>
+                <param name="set_dxl_torque_srv_name">dynamixel_hardware_interface/set_dxl_torque</param>
+                </hardware>
 
             <joint name="joint_1">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
-
             <joint name="joint_2">
                 <command_interface name="position"/>
                 <state_interface name="position"/>
                 <state_interface name="velocity"/>
             </joint>
+
+            <gpio name="joint_1_motor">
+                <param name="type">dxl</param>
+                <param name="ID">1</param>
+                <command_interface name="Goal Position"/>
+                <state_interface name="Present Position"/>
+                <state_interface name="Present Velocity"/>
+                <param name="Position P Gain">800</param>
+                <param name="Position I Gain">100</param>
+                <param name="Position D Gain">100</param>
+                <param name="Profile Velocity">200</param>
+                <param name="Profile Acceleration">50</param>
+                <param name="Drive Mode">1</param>
+            </gpio>
+            <gpio name="joint_2_motor">
+                <param name="type">dxl</param>
+                <param name="ID">2</param>
+                <command_interface name="Goal Position"/>
+                <state_interface name="Present Position"/>
+                <state_interface name="Present Velocity"/>
+                <param name="Position P Gain">800</param>
+                <param name="Position I Gain">100</param>
+                <param name="Position D Gain">100</param>
+                <param name="Profile Velocity">200</param>
+                <param name="Profile Acceleration">50</param>
+                <param name="Drive Mode">1</param>
+            </gpio> 
+
+            <transmission name="tran1">
+                <plugin>transmission_interface/SimpleTransmissionLoader</plugin>
+                <joint name="joint_1" role="joint"/>
+                <actuator name="joint_1_motor" role="actuator"/>
+            </transmission>
+            <transmission name="tran2">
+                <plugin>transmission_interface/SimpleTransmissionLoader</plugin>
+                <joint name="joint_2" role="joint"/>
+                <actuator name="joint_2_motor" role="actuator"/>
+            </transmission>
         </ros2_control>
     </xacro:unless>
 
