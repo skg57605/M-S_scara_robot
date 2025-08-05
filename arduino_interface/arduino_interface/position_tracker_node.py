@@ -28,7 +28,7 @@ class PositionTrackerNode(Node):
         # =======================================================================
         # 속도 감쇠: 1.0에 가까울수록 적분 값에 가깝고, 작을수록 드리프트 억제력이 강해집니다.
         # 너무 작으면 움직임이 둔감해집니다.
-        self.velocity_damping = 0.8
+        self.velocity_damping = 1.0
         
         # 중력 상수
         self.gravity = 9.80665
